@@ -2,14 +2,15 @@
 
 from __future__ import print_function
 
-import keras
+import os
+import time
 import tensorflow as tf
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten, Conv2D, MaxPooling2D, Rescaling, BatchNormalization
-from keras.optimizers import RMSprop,Adam
 import matplotlib.pyplot as plt
 import numpy as np
+
+from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Rescaling, GlobalAveragePooling2D
+from keras.optimizers import Adam
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 batch_size = 12
