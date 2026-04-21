@@ -63,6 +63,7 @@ with tf.device('/gpu:0'):
         labels='inferred',
         shuffle=True)
     
+    
     test_ds = tf.keras.preprocessing.image_dataset_from_directory(
         test_dir,
         seed=None,
@@ -70,20 +71,33 @@ with tf.device('/gpu:0'):
         batch_size=batch_size,
         labels='inferred',
         shuffle=True)
+   
+
 
     class_names = train_ds.class_names
     print('Class Names: ',class_names)
     num_classes = len(class_names)
+
+    AUTOTUNE = tf.data.AUTOTUNE
+    train_ds = train_ds.prefetch(buffer_size=AUTOTUNE)
+    val_ds = val_ds.prefetch(buffer_size=AUTOTUNE)
+    test_ds = test_ds.prefetch(buffer_size=AUTOTUNE)
+
     
     plt.figure(figsize=(10, 10))
-    for images, labels in train_ds.take(2):
-        for i in range(6):
+    for images, labels in train_ds.take(1):
+        for i in range(min(6, len(images))):
             ax = plt.subplot(2, 3, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
             plt.title(class_names[labels[i].numpy()])
             plt.axis("off")
+    plt.tight_layout()       
     plt.show()
 
+    data_augmentation = tf.keras.Sequential([
+      tf.keras.layers.RandomRotation(0.05),
+        tf.keras.layers.RandomZoom(0.05),
+    ])
     #create model
     model = tf.keras.models.Sequential([
         Rescaling(1.0/255),
