@@ -20,7 +20,7 @@ from keras.layers import (
     GlobalAveragePooling2D,
 )
 from keras.optimizers import Adam
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import ConfusionMatrixDisplay, classification_report, confusion_matrix
 from sklearn.utils.class_weight import compute_class_weight
 
 
@@ -173,7 +173,10 @@ with tf.device('/gpu:0'):
 
     #if shuffle=True when creating the dataset, samples will be chosen randomly   
     score = model.evaluate(test_ds, batch_size=batch_size)
+    print('Test loss:', score[0])
     print('Test accuracy:', score[1])
+    print('Test precision:', score[2])
+    print('Test recall:', score[3])
 
     
     if fit:
@@ -183,14 +186,67 @@ with tf.device('/gpu:0'):
         plt.ylabel('accuracy')
         plt.xlabel('epoch')
         plt.legend(['train', 'val'], loc='upper left')
+        plt.show()
+
+
+        plt.figure()
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'val'], loc='upper left')
+        plt.show()
+
+        y_true = []
+        y_pred = []
+
+        for images, labels in test_ds:
+            predictions = model.predict(images, verbose=0)
+            predicted_classes = np.argmax(predictions, axis=1)
+
+            y_true.extend(labels.numpy())
+            y_pred.extend(np.argmax(predictions, axis=1))
+
+            y_true.extend(labels.numpy())
+            y_pred.extend(predicted_classes)
+
+            cm = confusion_matrix(y_true, y_pred)
+
+            print("Confusion Matrix:")
+            print(cm)
+
+            print("Classification Report:")
+            print(classification_report(y_true, y_pred, target_names=class_names))
+
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+        disp.plot(cmap="Blues")
+        plt.title("Confusion Matrix")
+        plt.show()
+    
+            
+
+
+
+        print("Classification Report:")
         
     test_batch = test_ds.take(1)
     plt.figure(figsize=(10, 10))
+
     for images, labels in test_batch:
-        for i in range(6):
+        for i in range(min(6, len(images))):
             ax = plt.subplot(2, 3, i + 1)
             plt.imshow(images[i].numpy().astype("uint8"))
-            prediction = model.predict(tf.expand_dims(images[i].numpy(),0))#perform a prediction on this image
-            plt.title('Actual:' + class_names[labels[i].numpy()]+ '\nPredicted:{} {:.2f}%'.format(class_names[np.argmax(prediction)], 100 * np.max(prediction)))
+
+            prediction = model.predict(tf.expand_dims(images[i].numpy(),0))
+            predicted_index = np.argmax(prediction)
+            confidence = 100 * np.max(prediction)
+
+
+            #perform a prediction on this image
+            plt.title('Actual:' + class_names[labels[i].numpy()]+ 
+                      '\nPredicted:{} {:.2f}%'.format(class_names[predicted_index], 100 * np.max(prediction)))
             plt.axis("off")
+
+    plt.tight_layout()
     plt.show()
