@@ -114,20 +114,58 @@ with tf.device('/gpu:0'):
         Dense(num_classes, activation='softmax')
     ])
 
-    model.compile(loss='sparse_categorical_crossentropy',
+    model.compile(
+        loss='sparse_categorical_crossentropy',
                   optimizer=Adam(),
-                  metrics=['accuracy'])
+                    metrics=['accuracy',
+                   tf.keras.metrics.Precision(name='precision'),
+                    tf.keras.metrics.Recall(name='recall')
+                    ]
+                    
+    )
+
+    model.summary()
+
+    #
+    # Calculate class weights 
+    train_labels = []
+    for _, labels in train_ds.unbatch():
+        train_labels.append(labels.numpy())
+
+    class_weights = compute_class_weight(
+        class_weight='balanced',    
+        classes=np.unique(train_labels),
+        y=train_labels
+    )
+    class_weights_dict = dict(enumerate(class_weights))
+    print("Class weights:", class_weights_dict)
+
+    save_callback = tf.keras.callbacks.ModelCheckpoint(
+        "pneumonia.keras", 
+          save_best_only=True,
+          monitor='val_loss', 
+          mode='min'
+    )
+  
+    earlystop_callback = tf.keras.callbacks.EarlyStopping(
+    monitor='val_loss',
+    patience=3,
+    restore_best_weights=True
+    )
     
-    #earlystop_callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',patience=5)
-    save_callback = tf.keras.callbacks.ModelCheckpoint("pneumonia.keras",save_freq='epoch',save_best_only=True)
 
     if fit:
+        start_time = time.time()
+
         history = model.fit(
             train_ds,
-            batch_size=batch_size,
             validation_data=val_ds,
-            callbacks=[save_callback],
-            epochs=epochs)
+            callbacks=[save_callback, earlystop_callback],
+            epochs=epochs,
+            class_weight=class_weights_dict
+        )
+        end_time = time.time()
+        print("Training time:", round(end_time - start_time, 2), "seconds")
     else:
         model = tf.keras.models.load_model("pneumonia.keras")
 
