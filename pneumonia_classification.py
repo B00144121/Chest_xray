@@ -8,11 +8,19 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import numpy as np
 
-from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Rescaling, GlobalAveragePooling2D
+import matplotlib.pyplot as plt
+import tensorflow as tf
+
+from keras.layers import (
+    Dense,
+    Dropout,
+    Conv2D,
+    MaxPooling2D,
+    Rescaling,
+    GlobalAveragePooling2D,
+)
 from keras.optimizers import Adam
 from sklearn.metrics import classification_report, confusion_matrix
-
-
 batch_size = 12
 num_classes = 3
 epochs = 8
