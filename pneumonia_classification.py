@@ -152,6 +152,8 @@ with tf.device('/gpu:0'):
     patience=3,
     restore_best_weights=True
     )
+
+    #train the model
     
 
     if fit:
