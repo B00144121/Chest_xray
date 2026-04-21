@@ -21,6 +21,10 @@ from keras.layers import (
 )
 from keras.optimizers import Adam
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.utils.class_weight import compute_class_weight
+
+
+
 batch_size = 12
 num_classes = 3
 epochs = 8
@@ -28,8 +32,24 @@ img_width = 128
 img_height = 128
 img_channels = 3
 fit = True #make fit false if you do not want to train the network again
+
 train_dir = r"C:\Users\B00144121\Downloads\chest_xray\chest_xray\train"
 test_dir = r"C:\Users\B00144121\Downloads\chest_xray\chest_xray\test"
+def count_images(path):
+    counts = {}
+    for class_name in os.listdir(path):
+        class_path = os.path.join(path, class_name)
+        if os.path.isdir(class_path):
+            counts[class_name] = len(
+                [f for f in os.listdir(class_path)
+                 if os.path.isfile(os.path.join(class_path, f))]
+            )
+    return counts
+
+print("Train distribution:", count_images(train_dir))
+print("Test distribution:", count_images(test_dir))
+
+
 with tf.device('/gpu:0'):
     
     #create training,validation and test datatsets
