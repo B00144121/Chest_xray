@@ -107,10 +107,11 @@ with tf.device('/gpu:0'):
         MaxPooling2D(2,2),
         Conv2D(32, (3,3), activation = 'relu'),
         MaxPooling2D(2,2),
-        Flatten(), # flatten multidimensional outputs into single dimension for input to dense fully connected layers
-        Dense(512, activation = 'relu'),
-        Dropout(0.2),
-        Dense(num_classes, activation = 'softmax')
+         # flatten multidimensional outputs into single dimension for input to dense fully connected layers
+         GlobalAveragePooling2D(),
+        Dense(128, activation='relu'),
+        Dropout(0.5),
+        Dense(num_classes, activation='softmax')
     ])
 
     model.compile(loss='sparse_categorical_crossentropy',
